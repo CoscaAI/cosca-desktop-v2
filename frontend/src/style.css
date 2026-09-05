@@ -1,0 +1,605 @@
+/* =========================================================================
+   COSCA DESKTOP — layout & páginas (style.css)
+   Fluxo: HOME → CREATE → WORKSPACE → AGENT
+   Layout funcional preservado (classes consumidas pelo App.tsx). Visual
+   denso, panes planares, hierarquia por superfície — engineering workbench.
+   ========================================================================= */
+
+/* --- Tipografia de página --- */
+h1 { font-size: var(--fs-2xl); font-weight: var(--fw-bold); margin: 0; letter-spacing: -.01em; }
+h2 { font-size: var(--fs-xl); font-weight: var(--fw-semibold); margin: 0 0 var(--sp-1); }
+.dim { color: var(--text-3); font-weight: var(--fw-normal); }
+.small { font-size: var(--fs-xs); white-space: pre-wrap; word-break: break-word; }
+
+/* --- Breadcrumb (contexto: onde estou) --- */
+.crumb { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-sm); color: var(--text-2); }
+.crumb-sec {
+  color: var(--text); font-weight: var(--fw-semibold); font-size: var(--fs-xs);
+  letter-spacing: .5px; text-transform: uppercase;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-full); padding: 1px 8px;
+}
+.crumb-sep { color: var(--text-3); font-size: var(--fs-sm); }
+.spacer { flex: 1; }
+
+/* --- Shell / Topbar --- */
+.shell { height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--text); }
+.topbar { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-bottom: 1px solid var(--border); background: var(--surface); min-height: 42px; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: var(--fw-bold); letter-spacing: .6px; font-size: var(--fs-md); }
+.brand-mark { color: var(--accent); font-size: var(--fs-lg); }
+
+/* --- HOME (lista densa de projetos, não dashboard) --- */
+.home { flex: 1; overflow: auto; padding: var(--sp-5) var(--sp-6) var(--sp-7); max-width: 1120px; width: 100%; margin: 0 auto; }
+.home-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-2); }
+.proj-card {
+  position: relative; text-align: left; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-3) var(--sp-2); cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.proj-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: transparent; border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.proj-card:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); background: var(--surface-2); }
+.proj-card:hover::before, .proj-card:focus-visible::before { background: var(--accent); }
+.proj-card:active { transform: translateY(1px); }
+.proj-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.proj-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-2); }
+.proj-ico { color: var(--accent); font-size: var(--fs-lg); }
+.proj-name { font-weight: var(--fw-semibold); font-size: var(--fs-md); }
+.proj-path { font-size: var(--fs-xs); color: var(--text-3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* --- CREATE --- */
+.center { flex: 1; display: grid; place-items: center; padding: var(--sp-5); }
+.create { padding: var(--sp-5); }
+.create h2 { margin-bottom: var(--sp-2); }
+/* Campos de form (FormField) empilhados — espaçamento entre campos, sem margem
+   duplicada (o margin do antigo `.create label` foi removido; gap fica no .form-field). */
+.create .form-field + .form-field { margin-top: var(--sp-3); }
+.row { display: flex; gap: var(--sp-3); margin-top: var(--sp-4); }
+.row.inline { align-items: center; }
+.error-box {
+  color: var(--danger); margin-top: var(--sp-3);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  border-radius: var(--radius-md); padding: var(--sp-3); font-size: var(--fs-sm); white-space: pre-wrap;
+}
+
+/* --- WORKSPACE (workbench: rail ├ tree ├ activity ├ editor └ context) --- */
+.ws { flex: 1; display: flex; min-height: 0; }
+
+/* Rail (navegação vertical — ícones funcionais, não decoração) */
+.rail { width: 42px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: var(--sp-2) 0; gap: 4px; }
+.rail-btn {
+  width: 46px; height: 44px; border-radius: var(--radius-md);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; background: transparent; border: 1px solid transparent;
+  color: var(--text-3); cursor: pointer; font-size: var(--fs-lg);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.rail-btn svg { flex: none; }
+.rail-btn .rail-label {
+  /* micro-label de rail — sem token tão pequeno; compacto p/ caber no rail estreito.
+     Entre 8px (ilegível) e 11px (grande demais); 9px mantém densidade + legível. */
+  font-size: 9px; line-height: 1; letter-spacing: .5px;
+  text-transform: uppercase; color: inherit; white-space: nowrap;
+}
+.rail-btn:hover { background: var(--surface-2); color: var(--text); }
+.rail-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.rail-btn.active { background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+.rail-btn.disabled { opacity: .42; cursor: not-allowed; }
+.rail-btn.disabled:hover { background: transparent; color: var(--text-3); }
+.rail-sp { flex: 1; }
+
+/* Tree (arquivos — lista densa com indentação e seleção não-gritante) */
+/* width vem do Layout Engine (inline). O divisor é o Splitter (design.css).   */
+.tree { width: 232px; min-width: 0; background: var(--surface); overflow: auto; padding: var(--sp-1) 0 var(--sp-4); }
+.tree-head { font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--text-3); padding: 5px var(--sp-3) 3px; letter-spacing: .6px; text-transform: uppercase; }
+.tree-body { display: flex; flex-direction: column; }
+.tree-body:focus, .tree-body:focus-visible { outline: none; }
+.item {
+  display: flex; align-items: center; gap: 6px; padding: 3px var(--sp-3);
+  cursor: pointer; font-size: var(--fs-sm); color: var(--text-2); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; line-height: var(--lh-tight);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.item:hover { background: var(--surface-2); color: var(--text); }
+.item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.item.active { background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+.ico { width: 13px; text-align: center; color: var(--text-3); font-size: var(--fs-xs); flex: none; }
+.item.active .ico { color: var(--accent); }
+
+/* FILE EXPLORER (nós lazies — .tnode) */
+.tnode { }
+.tnode .item { gap: 5px; }
+.tnode .item-chev { width: 13px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-3); flex: none; }
+.tnode .item-chev .item-sp { width: 12px; height: 12px; }
+.tnode .item-ico { display: inline-flex; align-items: center; color: var(--text-2); flex: none; }
+.tnode .item-name { overflow: hidden; text-overflow: ellipsis; }
+.tnode .item.active .item-ico { color: var(--accent); }
+.tnode .item-loading, .tnode .item-error {
+  display: flex; align-items: center; gap: 8px; font-size: var(--fs-xs);
+  color: var(--text-3); padding: 3px var(--sp-3); line-height: var(--lh-tight);
+}
+.tnode .item-error { color: var(--danger); }
+.tnode .item-error span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tnode .item-error .btn { color: var(--text-2); border-color: var(--border-strong); }
+
+/* CODE VIEWER (CodeViewer.tsx) */
+.editor-col { position: relative; }
+.cv { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--code-bg); color: var(--code-fg); }
+.cv-bar {
+  display: flex; align-items: center; gap: 10px; padding: 4px 12px; min-height: 30px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  font-size: var(--fs-xs); font-weight: var(--fw-medium); flex: none;
+}
+.cv-bar__name { color: var(--text); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-bar__lang { color: var(--text-3); font-family: var(--font-mono); background: var(--surface-2); padding: 1px 6px; border-radius: var(--radius-sm); }
+.cv-bar__warn { color: var(--warn); margin-left: auto; }
+.cv-scroll { flex: 1; min-height: 0; overflow: auto; display: flex; }
+.cv-pre { margin: 0; padding: var(--sp-3) 0; font-family: var(--font-mono); font-size: var(--fs-md); line-height: 1.6; tab-size: 2; white-space: pre; color: var(--code-fg); }
+.cv-pre code { display: block; padding: 0 var(--sp-4); }
+.cv-gutter { flex: none; padding: var(--sp-3) 0; text-align: right; color: var(--syntax-punctuation); font-family: var(--font-mono); font-size: var(--fs-md); line-height: 1.6; user-select: none; opacity: .55; }
+.cv-gutter__ln { padding: 0 var(--sp-3) 0 var(--sp-2); }
+
+/* Seleção de texto no código — legível independente da cor sintática.
+   Fundo accent translúcido mais denso (o ::selection global é muito sutil p/
+   código), mantém o texto claro e distingue sobre string/keyword coloridas. */
+.cv ::selection { background: color-mix(in srgb, var(--accent) 42%, transparent); color: var(--code-fg); }
+
+/* Contraste forçado (WCAG) — sem depender de cor para legibilidade */
+@media (forced-colors: active) {
+  .cv .hljs, .cv .hljs span, .cv-gutter { color: CanvasText !important; }
+  .cv-scroll { border: 1px solid CanvasText; }
+}
+
+/* Arquivo não-código (binário/imagem) — card honesto de metadata */
+.cv-binary { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-3); background: var(--surface); padding: var(--sp-5); }
+.cv-binary__head { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text); }
+.cv-binary__mark { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--border-strong); font-size: 9px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-3); }
+.cv-binary__meta { display: flex; flex-direction: column; gap: 6px; min-width: 260px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-3) var(--sp-4); }
+.cv-binary__meta div { display: flex; justify-content: space-between; gap: 16px; font-size: var(--fs-sm); }
+.cv-binary__meta dt { color: var(--text-3); }
+.cv-binary__meta dd { color: var(--text); font-family: var(--font-mono); margin: 0; }
+.cv-binary__note { font-size: var(--fs-xs); color: var(--text-3); }
+
+/* SYNTAX HIGHLIGHTING NATIVO — o hljs identifica (classes hljs-*), o Design
+   System define a aparência (tokens --syntax-*). Zero cor hardcoded aqui.
+   Contratar: hierarquia > decoração, poucas famílias, sem neon/text-shadow. */
+.cv .hljs { background: transparent; color: var(--syntax-text); }
+
+/* Comentários — discretos, menor contraste, nunca competem com o código */
+.cv .hljs-comment, .cv .hljs-quote { color: var(--syntax-comment); font-style: italic; }
+.cv .hljs-comment .hljs-string { color: var(--syntax-comment); }
+
+/* Palavras-chave / tags / literais */
+.cv .hljs-keyword, .cv .hljs-selector-tag, .cv .hljs-literal,
+.cv .hljs-name, .cv .hljs-tag { color: var(--syntax-keyword); }
+
+/* Código inline (markdown) */
+.cv .hljs-code { color: var(--syntax-keyword); }
+
+/* CSS: seletor genérico + atributos */
+.cv .hljs-selector { color: var(--syntax-keyword); }
+
+/* Strings / regex / additions */
+.cv .hljs-string, .cv .hljs-regexp, .cv .hljs-addition { color: var(--syntax-string); }
+
+/* Números / símbolos / bullets */
+.cv .hljs-number, .cv .hljs-symbol, .cv .hljs-bullet, .cv .hljs-link { color: var(--syntax-number); }
+
+/* Títulos / funções / seções */
+.cv .hljs-title, .cv .hljs-title.function_, .cv .hljs-section,
+.cv .hljs-function { color: var(--syntax-function); }
+
+/* Tipos / classes / built-ins */
+.cv .hljs-type, .cv .hljs-title.class_, .cv .hljs-built_in,
+.cv .hljs-class { color: var(--syntax-type); }
+
+/* Atributos / chaves de objeto (json key) / properties */
+.cv .hljs-attr, .cv .hljs-attribute, .cv .hljs-property,
+.cv .hljs-selector-attr { color: var(--syntax-property); }
+
+/* Variáveis / templates */
+.cv .hljs-variable, .cv .hljs-template-variable,
+.cv .hljs-params { color: var(--syntax-variable); }
+
+/* Meta / doctag */
+.cv .hljs-meta, .cv .hljs-doctag { color: var(--syntax-meta); }
+
+/* Operadores / pontuação */
+.cv .hljs-operator { color: var(--syntax-operator); }
+.cv .hljs-punctuation { color: var(--syntax-punctuation); }
+
+.cv .hljs-deletion { color: var(--danger); }
+.cv .hljs-emphasis { font-style: italic; }
+.cv .hljs-strong { font-weight: bold; }
+
+
+/* Layout principal */
+.workspace { flex: 1; display: flex; min-width: 0; min-height: 0; }
+
+/* Coluna do agente (painel esquerdo do workbench) */
+/* width vem do Layout Engine (inline). O divisor é o Splitter (design.css).   */
+.agent-col { width: 340px; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--surface); overflow: hidden; }
+.agent-col .panel-head { border-bottom: 1px solid var(--border); }
+.agent-input { display: flex; flex-direction: column; gap: 6px; padding: var(--sp-3); border-bottom: 1px solid var(--border); }
+.agent-input textarea { min-height: 56px; resize: none; }
+.agent-actions { display: flex; align-items: center; gap: 8px; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border); }
+.hint { font-size: var(--fs-xs); color: var(--text-3); }
+.activity { flex: 1; overflow: auto; }
+
+/* Aprovação humana: destacar que é revisável, com indicador não-cor */
+.plan-panel {
+  margin: var(--sp-3); overflow: hidden; border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--surface-2);
+}
+.plan-panel .panel-head { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.plan-panel pre { margin: 0; padding: var(--sp-3); font-size: var(--fs-sm); }
+
+/* Editor (coluna central — fundo de código sempre escuro) */
+.editor-col { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--surface); }
+.fs-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid var(--border); font-weight: var(--fw-semibold); font-size: var(--fs-sm); min-height: 40px; background: var(--surface); }
+.fs-head > span { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fs-head > span:first-child { color: var(--text); font-family: var(--font-mono); font-weight: var(--fw-medium); }
+.fs-head > span:first-child::before {
+  content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 2px;
+  background: var(--info); margin-right: 8px; vertical-align: middle;
+}
+.code {
+  flex: 1; width: 100%; background: var(--code-bg); color: var(--code-fg);
+  border: 0; padding: var(--sp-4); font-family: var(--font-mono); font-size: var(--fs-md);
+  line-height: 1.6; resize: none; tab-size: 2; caret-color: var(--accent);
+}
+.code:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Contexto (painel direito — metadados densos) */
+/* width vem do Layout Engine (inline). O divisor é o Splitter (design.css).   */
+.ctx { width: 250px; min-width: 0; background: var(--surface); padding: 0; overflow: auto; }
+.ctx .panel-head { border-bottom: 1px solid var(--border); }
+.ctx-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 12px; font-size: var(--fs-sm); border-bottom: 1px solid var(--border); }
+.ctx-row:last-child { border-bottom: none; }
+.ctx-row span { color: var(--text-2); }
+.ctx-row b { text-align: right; font-weight: var(--fw-semibold); color: var(--text); }
+.ctx-label { font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); padding: 12px 12px 4px; }
+
+/* Marca (empty states) — quieto, um quadrado discreto, não um tile gritante */
+.hero-mark {
+  width: 40px; height: 40px; border-radius: var(--radius-md);
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--accent); font-size: var(--fs-xl);
+  display: grid; place-items: center;
+}
+
+/* --- DIFF pane (FASE C — working tree, engenharia honesta) ----------------- */
+/* width vem do Layout Engine (inline). Fonte: ProjectDiff()/DiffSnapshot().    */
+.diff-col { width: 340px; min-width: 0; background: var(--surface); display: flex; flex-direction: column; overflow: hidden; }
+.diff-head { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid var(--border); background: var(--surface); min-height: 40px; font-weight: var(--fw-semibold); font-size: var(--fs-xs); letter-spacing: .6px; text-transform: uppercase; color: var(--text-2); }
+.diff-head .diff-title { flex: none; }
+.diff-head .diff-dir { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; /* exceção: micro-label mono do diff (sem token tão pequeno; não forçar --fs-xs p/ preservar densidade) */ color: var(--text-3); letter-spacing: 0; text-transform: none; }
+.diff-body { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+
+/* Resumo compacto (files · + · −) — inline, não cards */
+.diff-summary { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-bottom: 1px solid var(--border); font-size: var(--fs-xs); color: var(--text-2); flex: none; }
+.diff-summary b { font-weight: var(--fw-bold); color: var(--text); }
+.diff-summary .add b { color: var(--ok); }
+.diff-summary .del b { color: var(--danger); }
+
+/* Lista densa de arquivos alterados (seleção por clique OU teclado ↑↓) */
+.diff-list { flex: none; max-height: 46%; overflow: auto; border-bottom: 1px solid var(--border); }
+.diff-list:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.diff-item {
+  display: flex; align-items: center; gap: 6px; width: 100%; padding: 5px 12px;
+  background: transparent; border: 0; border-bottom: 1px solid var(--border);
+  cursor: pointer; font-size: var(--fs-sm); color: var(--text-2); text-align: left;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.diff-item:hover { background: var(--surface-2); color: var(--text); }
+.diff-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.diff-item.active { background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+.diff-glyph { width: 14px; flex: none; text-align: center; font-family: var(--font-mono); font-weight: var(--fw-bold); }
+.diff-glyph.ok { color: var(--ok); }
+.diff-glyph.warn { color: var(--warn); }
+.diff-glyph.danger { color: var(--danger); }
+.diff-glyph.info { color: var(--info); }
+.diff-glyph.neutral { color: var(--neutral); }
+.diff-path { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: var(--fs-xs); color: inherit; }
+.diff-rename { color: var(--text-3); font-size: 10px; /* exceção: micro-label mono do diff (sem token tão pequeno; não forçar --fs-xs p/ preservar densidade) */ }
+.diff-stat { flex: none; font-family: var(--font-mono); font-size: var(--fs-xs); white-space: nowrap; }
+.diff-stat .add { color: var(--ok); }
+.diff-stat .del { color: var(--danger); }
+
+/* Patch (unified diff) — linhas +/-, hunk e cabeçalhos, mono denso */
+.diff-patch { flex: 1; min-height: 0; overflow: auto; }
+.diff-patch .panel-head { position: sticky; top: 0; z-index: 1; background: var(--surface-2); }
+.diff-patch .panel-head .mono { color: var(--text-2); }
+.diff-patch pre { margin: 0; padding: 8px 12px; font-size: var(--fs-xs); line-height: 1.55; background: var(--code-bg); color: var(--code-fg); white-space: pre-wrap; word-break: break-all; }
+.diff-line { display: block; padding: 0 6px; }
+.diff-line.diff-add { background: color-mix(in srgb, var(--ok) 12%, transparent); color: color-mix(in srgb, var(--ok) 80%, var(--code-fg)); }
+.diff-line.diff-del { background: color-mix(in srgb, var(--danger) 12%, transparent); color: color-mix(in srgb, var(--danger) 80%, var(--code-fg)); }
+.diff-line.diff-hunk { color: var(--info); }
+.diff-line.diff-meta { color: var(--text-3); }
+.diff-line.diff-ctx { color: var(--code-fg); }
+
+/* --- INTELLIGENCE pane (PROJECT INTELLIGENCE — perfil por evidência) ------- */
+/* width vem do Layout Engine (inline). Fonte: AnalyzeProject() apenas.        */
+/* Todo o conteúdo é denso e derivado de tokens; a confiança tem glyph (✓/•/!) */
+/* e MAIS cor — indicador não-cor, nunca cor sozinha. Mono só para o técnico.  */
+.intel-col { width: 340px; min-width: 0; background: var(--surface); display: flex; flex-direction: column; overflow: hidden; }
+.intel-head {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  min-height: 40px; font-weight: var(--fw-semibold); font-size: var(--fs-xs);
+  letter-spacing: .6px; text-transform: uppercase; color: var(--text-2);
+}
+.intel-head .intel-title { flex: none; color: var(--text); }
+.intel-body { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.intel-scroll { flex: 1; min-height: 0; overflow: auto; }
+
+/* Hero do projeto (nome + tipos + detected at + stack + why-detected) */
+.intel-hero { padding: var(--sp-3) var(--sp-3) var(--sp-2); border-bottom: 1px solid var(--border); }
+.intel-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--text); margin-bottom: var(--sp-2); word-break: break-word; }
+.intel-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: var(--sp-2); }
+.intel-meta .badges { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.intel-stack { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: var(--sp-2); word-break: break-word; }
+.intel-why { display: flex; align-items: center; gap: 6px; color: var(--text-3); font-size: var(--fs-xs); margin-bottom: var(--sp-2); }
+.intel-why-text { color: var(--text-3); }
+.intel-caps { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* Categorias planares (grupo de tecnologias por evidência) */
+.intel-cats { display: flex; flex-direction: column; }
+.intel-cat { border-bottom: 1px solid var(--border); }
+.intel-cat .panel-head { background: var(--surface-2); }
+.intel-cat .panel-head .mono { color: var(--text-3); }
+.cat-body { display: flex; flex-direction: column; padding: 2px var(--sp-3) var(--sp-2); }
+
+/* Um Tech: nome + badge de confiança (glyph ✓/•/!) + evidência "why detected" */
+.tech { padding: var(--sp-2) 0; border-bottom: 1px solid var(--border); }
+.tech:last-child { border-bottom: none; }
+.tech-row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tech-name { font-weight: var(--fw-semibold); font-size: var(--fs-sm); color: var(--text); word-break: break-word; }
+.conf-glyph { font-family: var(--font-mono); font-weight: var(--fw-bold); }
+
+/* Evidência — lista mono discreta, cada linha um "why". Nunca inventa: só o
+   que o detector registrou em `evidence[]`. */
+.tech-ev { margin-top: 4px; display: flex; flex-direction: column; gap: 1px; }
+.ev { display: flex; align-items: baseline; gap: 6px; font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.45; }
+.ev-glyph { width: 14px; flex: none; text-align: center; color: var(--text-3); }
+.ev-val { color: var(--text-2); word-break: break-all; }
+.ev-meta { color: var(--text-3); font-size: var(--fs-xs); flex: none; word-break: break-word; }
+.tech-note { margin-top: 3px; font-size: var(--fs-xs); color: var(--text-3); }
+
+/* Comandos detectados: name → cmd (source) — densos */
+.cmd { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; border-bottom: 1px solid var(--border); font-size: var(--fs-xs); }
+.cmd:last-child { border-bottom: none; }
+.cmd-name { font-weight: var(--fw-semibold); color: var(--text-2); flex: none; }
+.cmd-cmd { color: var(--text); word-break: break-all; }
+.cmd-src { color: var(--text-3); flex: none; }
+
+/* Config files — lista mono */
+.cfg { padding: 2px 0; font-size: var(--fs-xs); color: var(--text-2); word-break: break-all; }
+
+/* --- AGENT PROJECT CONTEXT (FASE 3 — o agente JÁ sabe a stack/pipeline) ----- */
+/* Fonte única: AgentProjectContext(). Pane planar, denso, 100% tokens.       */
+/* Skills têm indicador NÃO-cor (glyph ◆); pipeline tem glyph ✓/·/! por status */
+/* + texto — nunca cor sozinha. Mono apenas para o técnico (slugs/ferramentas).*/
+.ctx-block { border-bottom: 1px solid var(--border); }
+.ctx-block .panel-head { border-bottom: 1px solid var(--border); }
+.ctx-stack { padding: var(--sp-2) var(--sp-3) 0; font-size: var(--fs-sm); color: var(--text-2); word-break: break-word; }
+.ctx-note { padding: var(--sp-2) var(--sp-3) 0; font-size: var(--fs-xs); color: var(--text-3); }
+.ctx-meta { display: flex; flex-wrap: wrap; gap: 4px; padding: var(--sp-2) var(--sp-3) 0; }
+.ctx-skills { padding: var(--sp-2) var(--sp-3) 0; }
+.ph {
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: .4px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 4px;
+}
+.skill-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.skill-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 0 7px;
+  border-radius: var(--radius-full); border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-2);
+  font-size: var(--fs-xs); font-family: var(--font-mono); white-space: nowrap;
+}
+.skill-chip::before { content: '◆'; color: var(--accent); font-size: 8px; }
+.pipe { padding: var(--sp-2) var(--sp-3) var(--sp-2); display: flex; flex-direction: column; gap: 2px; }
+.pipe-step { display: flex; align-items: center; gap: 6px; font-size: var(--fs-xs); }
+.pipe-num { width: 14px; flex: none; text-align: right; font-family: var(--font-mono); color: var(--text-3); }
+.pipe-glyph { width: 12px; flex: none; text-align: center; font-family: var(--font-mono); font-weight: var(--fw-bold); }
+.pipe-glyph.ok { color: var(--ok); }
+.pipe-glyph.neutral { color: var(--neutral); }
+.pipe-glyph.warn { color: var(--warn); }
+.pipe-name { color: var(--text-2); min-width: 0; }
+.pipe-tool { color: var(--text); word-break: break-all; }
+
+
+/* =========================================================================
+   COSCA DESKTOP — SETTINGS (Central de Configurações)
+   Denso, tokens, radius 4/6/8, sem cor hardcoded. Governado por UI_GOVERNANCE.
+   ========================================================================= */
+
+.settings { display: flex; flex: 1; min-height: 0; background: var(--bg); }
+.settings-nav {
+  width: 200px; flex: none; border-right: 1px solid var(--border); background: var(--surface);
+  display: flex; flex-direction: column; min-height: 0;
+}
+.settings-navlist { overflow: auto; padding: var(--sp-2) 0; }
+.settings-searchwrap { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border); }
+.settings-search { position: relative; display: flex; align-items: center; }
+/* Ícone de busca (à esquerda) e atalho ⌘ (à direita) posicionados de forma
+   absoluta sobre o campo `.input-search` — o campo reserva o espaço via padding. */
+.settings-search > svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
+.settings-search > .kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); background: transparent; border-color: var(--border-subtle); }
+.settings-search .settings-search-input { width: 100%; padding-left: 30px; padding-right: 28px; }
+.settings-item {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px var(--sp-3);
+  background: transparent; border: 0; border-left: 2px solid transparent; cursor: pointer;
+  color: var(--text-2); font-size: var(--fs-sm); text-align: left; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.settings-item:hover { background: var(--surface-2); color: var(--text); }
+.settings-item.active { background: var(--accent-soft); color: var(--accent); border-left-color: var(--accent); }
+.settings-item-icon { flex: none; display: inline-flex; }
+.settings-item-label { font-weight: var(--fw-medium); }
+
+.settings-content { flex: 1; min-width: 0; overflow: auto; padding: var(--sp-5) var(--sp-6) var(--sp-7); }
+.settings-section { max-width: 760px; }
+.settings-section-head { margin-bottom: var(--sp-4); }
+.settings-section-head h1 { font-size: var(--fs-xl); font-weight: var(--fw-semibold); letter-spacing: -.01em; }
+.settings-desc { color: var(--text-3); font-size: var(--fs-sm); margin-top: 2px; }
+
+.settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: var(--sp-4); overflow: hidden; }
+.settings-card-head { padding: 8px var(--sp-4); border-bottom: 1px solid var(--border); font-weight: var(--fw-semibold); font-size: var(--fs-xs); letter-spacing: .5px; text-transform: uppercase; color: var(--text-2); background: var(--surface-2); }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: 10px var(--sp-4); border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label { font-weight: var(--fw-medium); color: var(--text); font-size: var(--fs-sm); }
+.settings-row-desc { color: var(--text-3); font-size: var(--fs-xs); margin-top: 1px; }
+.settings-row-value { flex: none; }
+.settings-note { padding: 10px var(--sp-4); font-size: var(--fs-xs); color: var(--text-3); border-bottom: 1px solid var(--border); }
+
+.settings-kv { display: flex; align-items: center; gap: 10px; padding: 6px var(--sp-4); border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
+.settings-kv:last-child { border-bottom: none; }
+.settings-kv-label { width: 150px; flex: none; color: var(--text-3); font-weight: var(--fw-medium); }
+.settings-seq { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+.settings-shortcuts { display: flex; flex-direction: column; }
+.settings-shortcut { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: 10px var(--sp-4); border-bottom: 1px solid var(--border); }
+.settings-shortcut:last-child { border-bottom: none; }
+.settings-shortcut-label { font-weight: var(--fw-medium); font-size: var(--fs-sm); }
+.settings-shortcut-scope { color: var(--text-3); font-size: var(--fs-xs); }
+.settings-shortcut-keys { flex: none; }
+.settings-reset-row { padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--border); }
+
+.settings-results { display: flex; flex-direction: column; gap: 4px; padding: var(--sp-2); }
+.settings-result { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-2); }
+.settings-result:hover { background: var(--surface-2); color: var(--text); }
+.settings-result-icon { flex: none; display: inline-flex; color: var(--accent); }
+.settings-result-name { font-weight: var(--fw-medium); }
+
+.settings-about-hero { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-5); margin-bottom: var(--sp-4); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.settings-about-title { font-size: var(--fs-xl); font-weight: var(--fw-semibold); }
+.settings-about-meta { display: grid; grid-template-columns: 160px 1fr; gap: 6px var(--sp-4); font-size: var(--fs-sm); }
+
+
+/* =========================================================================
+   COSCA DESKTOP — CHAT (FASE 3) — a tela principal de conversa
+   100% tokens do design system (design.css / style.css), dark-first.
+   Sidebar redimensionavel (Splitter) + painel de conversa. Sem segundo DS.
+   ========================================================================= */
+
+/* View raiz do chat (braco flex do workspace, apos o rail) */
+.chat-view { flex: 1; min-width: 0; display: flex; background: var(--bg); }
+
+/* ── Sidebar de conversas ──────────────────────────────────────────────── */
+.chat-side { flex: none; display: flex; flex-direction: column; min-height: 0; background: var(--surface); border-right: 1px solid var(--border); }
+.chat-side-head {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: .6px;
+  text-transform: uppercase; color: var(--text-2);
+}
+.chat-side-title { flex: 1; }
+.chat-side-list { flex: 1; min-height: 0; overflow: auto; padding: 4px; }
+.chat-side-empty { color: var(--text-3); font-size: var(--fs-xs); padding: var(--sp-3) var(--sp-2); line-height: var(--lh-normal); }
+.chat-side-item {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 8px 10px;
+  background: transparent; border: 0; border-radius: var(--radius-sm);
+  cursor: pointer; text-align: left; color: var(--text-2); margin-bottom: 2px;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.chat-side-item:hover { background: var(--surface-2); color: var(--text); }
+.chat-side-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.chat-side-item.active { background: var(--accent-soft); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+.chat-side-item:disabled { opacity: .5; cursor: not-allowed; }
+.chat-side-item-title { font-size: var(--fs-sm); font-weight: var(--fw-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-side-item-meta { display: flex; gap: 8px; font-size: var(--fs-xs); color: var(--text-3); }
+.chat-side-item-meta .mono { color: var(--text-3); }
+
+/* ── Painel de conversa (main) ─────────────────────────────────────────── */
+.chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg); }
+.chat-head {
+  display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  font-size: var(--fs-sm); min-height: 44px;
+}
+.chat-head-title { font-weight: var(--fw-semibold); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-model { display: flex; align-items: center; gap: 6px; }
+.chat-model-label { font-size: var(--fs-xs); color: var(--text-3); }
+.chat-model select { width: auto; min-width: 150px; }
+
+/* ── Scroll de mensagens ───────────────────────────────────────────────── */
+.chat-scroll { flex: 1; min-height: 0; overflow: auto; padding: var(--sp-4) var(--sp-5) var(--sp-5); }
+.chat-empty { height: 100%; display: grid; place-items: center; align-content: center; gap: 8px; text-align: center; color: var(--text-2); }
+.chat-empty-title { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); color: var(--text); }
+.chat-empty-sub { margin: 0; font-size: var(--fs-sm); max-width: 420px; color: var(--text-3); }
+
+/* ── Linhas de mensagem ────────────────────────────────────────────────── */
+.chat-row { display: flex; gap: 10px; margin-bottom: var(--sp-4); }
+.chat-row.user { justify-content: flex-end; }
+.chat-row.assistant { justify-content: flex-start; }
+.chat-avatar {
+  flex: none; width: 26px; height: 26px; border-radius: var(--radius-md);
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--accent); display: grid; place-items: center;
+}
+.chat-bubble { max-width: 78%; border-radius: var(--radius-lg); padding: var(--sp-3); }
+.chat-bubble.user { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); align-self: flex-end; }
+.chat-bubble-text { white-space: pre-wrap; word-break: break-word; color: var(--text); font-size: var(--fs-md); line-height: var(--lh-normal); }
+.chat-bubble-time { display: block; margin-top: 4px; font-size: var(--fs-xs); color: var(--text-3); text-align: right; }
+.chat-msg { min-width: 0; max-width: 78%; display: flex; flex-direction: column; }
+.chat-msg-meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.chat-msg-time { font-size: var(--fs-xs); color: var(--text-3); }
+.chat-msg-actions { display: flex; gap: 4px; margin-top: 6px; }
+
+/* ── Indicador de pensando/progresso ───────────────────────────────────── */
+.chat-pending { display: inline-flex; align-items: center; gap: 8px; color: var(--text-2); font-size: var(--fs-sm); padding: 2px 0; }
+.chat-pending-detail { font-size: var(--fs-xs); color: var(--text-3); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-md { color: var(--text); font-size: var(--fs-md); line-height: var(--lh-normal); word-break: break-word; }
+.chat-md-dim { color: var(--text-3); font-size: var(--fs-sm); }
+
+/* Markdown em si: paragrafos/listas com espacamento compacto */
+.chat-md p { margin: 0 0 var(--sp-2); }
+.chat-md p:last-child { margin-bottom: 0; }
+.chat-md h1, .chat-md h2, .chat-md h3, .chat-md h4 { margin: var(--sp-3) 0 var(--sp-1); font-weight: var(--fw-semibold); color: var(--text); }
+.chat-md h1 { font-size: var(--fs-xl); } .chat-md h2 { font-size: var(--fs-lg); } .chat-md h3, .chat-md h4 { font-size: var(--fs-md); }
+.chat-md ul, .chat-md ol { margin: var(--sp-1) 0 var(--sp-2); padding-left: var(--sp-4); }
+.chat-md li { margin: 2px 0; }
+.chat-md blockquote { margin: var(--sp-2) 0; padding: 2px var(--sp-3); border-left: 3px solid var(--accent); color: var(--text-2); }
+.chat-md a { color: var(--accent); text-decoration: none; }
+.chat-md a:hover { text-decoration: underline; }
+.chat-md hr { border: 0; border-top: 1px solid var(--border); margin: var(--sp-3) 0; }
+.chat-md table { border-collapse: collapse; margin: var(--sp-2) 0; font-size: var(--fs-sm); }
+.chat-md th, .chat-md td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; }
+.chat-md th { background: var(--surface-2); }
+
+/* Código inline (backticks) */
+.chat-inline-code { font-family: var(--font-mono); font-size: var(--fs-sm); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1px 5px; color: var(--syntax-keyword); }
+
+/* Bloco de código destacado (highlight.js) — mesmo token do CodeViewer */
+.chat-code { margin: var(--sp-2) 0; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--code-bg); }
+.chat-code-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.chat-code-lang { font-size: var(--fs-xs); color: var(--text-3); font-family: var(--font-mono); text-transform: lowercase; }
+.chat-code-block { margin: 0; padding: var(--sp-2) var(--sp-3); overflow: auto; font-family: var(--font-mono); font-size: var(--fs-md); line-height: 1.55; tab-size: 2; color: var(--code-fg); }
+.chat-code-block code { display: block; background: transparent; color: var(--syntax-text); }
+.chat-code .hljs { background: transparent; }
+.chat-code .hljs-comment, .chat-code .hljs-quote { color: var(--syntax-comment); font-style: italic; }
+.chat-code .hljs-keyword, .chat-code .hljs-selector-tag, .chat-code .hljs-literal, .chat-code .hljs-name, .chat-code .hljs-tag { color: var(--syntax-keyword); }
+.chat-code .hljs-string, .chat-code .hljs-regexp, .chat-code .hljs-addition { color: var(--syntax-string); }
+.chat-code .hljs-number, .chat-code .hljs-symbol, .chat-code .hljs-bullet, .chat-code .hljs-link { color: var(--syntax-number); }
+.chat-code .hljs-title, .chat-code .hljs-title.function_, .chat-code .hljs-section { color: var(--syntax-function); }
+.chat-code .hljs-type, .chat-code .hljs-title.class_, .chat-code .hljs-built_in, .chat-code .hljs-class { color: var(--syntax-type); }
+.chat-code .hljs-attr, .chat-code .hljs-attribute, .chat-code .hljs-property { color: var(--syntax-property); }
+.chat-code .hljs-variable, .chat-code .hljs-template-variable, .chat-code .hljs-params { color: var(--syntax-variable); }
+.chat-code .hljs-meta, .chat-code .hljs-doctag { color: var(--syntax-meta); }
+.chat-code .hljs-operator { color: var(--syntax-operator); }
+.chat-code .hljs-punctuation { color: var(--syntax-punctuation); }
+.chat-code .hljs-deletion { color: var(--danger); }
+.chat-code .hljs-emphasis { font-style: italic; }
+.chat-code .hljs-strong { font-weight: bold; }
+
+/* ── Composer ──────────────────────────────────────────────────────────── */
+.chat-composer { flex: none; padding: var(--sp-3); border-top: 1px solid var(--border); background: var(--surface); }
+.chat-input { min-height: 54px; resize: none; }
+.chat-composer-row { display: flex; align-items: center; gap: 8px; margin-top: var(--sp-2); }

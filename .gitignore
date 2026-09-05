@@ -1,0 +1,15 @@
+# COSCA Desktop — artefatos de build/deps (nao versionar)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+build/
+dist/
+*.exe
+*.dll
+bin/
+*.log
+
+# Wails gerado (bindings regenerados no build — manter? os bindings sao gerados; mas
+# se voce editar app.go, os wailsjs regeneram. Deixar os bindings versionados p/ o
+# frontend buildar sem `wails generate`. Nao ignorar wailsjs.)
+# Se preferir regenerar: remover frontend/wailsjs do controle e rodar `wails generate`.

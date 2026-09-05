@@ -1,0 +1,7 @@
+/* =========================================================================
+   App.css — LEGADO do template Wails (NÃO importado em main.tsx).
+   O design system vive em style.css (layout) + design.css (tokens/componentes).
+   Mantido apenas para referência; não conflita com :root.
+   ========================================================================= */
+
+#app { height: 100vh; text-align: center; }
